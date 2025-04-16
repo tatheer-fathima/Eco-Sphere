@@ -11,7 +11,7 @@ import connectDB from './db.js';
 import householdRouter from "./householdData.js";
 // import contactUsRouter from "./contactus.js";
 // import authRouter from "./Authentication.js";
-// import businessRouter from "./businessData.js";
+import businessRouter from "./businessData.js";
 // import adminRouter from "./adminData.js";
 // import memorystore from 'memorystore';
 // import path from "path";
@@ -168,7 +168,7 @@ app.use(express.json());
 app.use("/api/household", householdRouter);
 // app.use("/api/contact", contactUsRouter);
 // app.use("/api/auth", authRouter);
-// app.use("/api/business", businessRouter);
+app.use("/api/business", businessRouter);
 // app.use("/api/admin", adminRouter);
 
 app.listen(port, () => console.log("App is listening"));

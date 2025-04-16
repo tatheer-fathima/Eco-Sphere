@@ -4,7 +4,8 @@ const { Schema } = mongoose;
 
 const familyMemberSchema = new Schema({
   household_common_id: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,  // Change to ObjectId
+    ref: 'HouseholdCommon',                // Reference to HouseholdCommon model
     required: true
   },
   name: {
@@ -32,7 +33,7 @@ const familyMemberSchema = new Schema({
     required: true
   },
 }, {
-  timestamps: false  // MongoDB doesn't have timestamps by default unless you want them.
+  timestamps: false
 });
 
 const FamilyMember = mongoose.model('FamilyMember', familyMemberSchema);

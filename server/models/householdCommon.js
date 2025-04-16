@@ -1,13 +1,31 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../db.js';
+import mongoose from 'mongoose';
 
-export const HouseholdCommon = sequelize.define('HouseholdCommon', {
-  user_id: DataTypes.STRING,
-  electricity_usage: DataTypes.FLOAT,
-  water_usage: DataTypes.FLOAT,
-  waste_generation: DataTypes.FLOAT,
-  gas_cylinder: DataTypes.FLOAT,
+const householdCommonSchema = new mongoose.Schema({
+  user_id: {
+    type: String,
+    required: true
+  },
+  electricity_usage: {
+    type: Number,
+    default: 0
+  },
+  water_usage: {
+    type: Number,
+    default: 0
+  },
+  waste_generation: {
+    type: Number,
+    default: 0
+  },
+  gas_cylinder: {
+    type: Number,
+    default: 0
+  }
 }, {
-  tableName: 'household_common',
+  collection: 'household_common',
   timestamps: false
 });
+
+const HouseholdCommon = mongoose.model('HouseholdCommon', householdCommonSchema);
+
+export default HouseholdCommon;

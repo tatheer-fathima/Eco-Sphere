@@ -8,7 +8,7 @@ import connectDB from './db.js';
 // import { Strategy as LocalStrategy } from "passport-local";
 // import cors from "cors";
 // import cookieParser from "cookie-parser";
-// import householdRouter from "./householdData.js";
+import householdRouter from "./householdData.js";
 // import contactUsRouter from "./contactus.js";
 // import authRouter from "./Authentication.js";
 // import businessRouter from "./businessData.js";
@@ -163,13 +163,15 @@ connectDB();
 //   });
 
 // Other routes
-// app.use("/api/household", householdRouter);
+
+app.use(express.json());
+app.use("/api/household", householdRouter);
 // app.use("/api/contact", contactUsRouter);
 // app.use("/api/auth", authRouter);
 // app.use("/api/business", businessRouter);
 // app.use("/api/admin", adminRouter);
 
-app.listen(3000, () => console.log("App is listening"));
+app.listen(port, () => console.log("App is listening"));
 
 // const __dirname1 = path.resolve();
 

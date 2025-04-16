@@ -1,16 +1,15 @@
 import mongoose from 'mongoose';
 
-const businessCommonSchema = new mongoose.Schema({
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  electricity_usage: { type: Number, required: false },
-  water_usage: { type: Number, required: false },
-  paper_consumption: { type: Number, required: false },
-  waste_generation: { type: Number, required: false },
-  fuel_consumption: { type: Number, required: false },
-  business_travel: { type: Number, required: false },
-  created_at: { type: Date, default: Date.now },
+const BusinessCommonSchema = new mongoose.Schema({
+  user_id: { type: String, required: true },
+  electricity_usage: Number,
+  water_usage: Number,
+  paper_consumption: Number,
+  waste_generation: Number,
+  fuel_consumption: Number,
+  business_travel: Number
 });
 
-const BusinessCommon = mongoose.model('BusinessCommon', businessCommonSchema);
+const BusinessCommon = mongoose.model('BusinessCommon', BusinessCommonSchema);
 
 export default BusinessCommon;

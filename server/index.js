@@ -1,24 +1,24 @@
 // import axios from 'axios';
 import express from "express";
-// import bodyParser from "body-parser";
+import bodyParser from "body-parser";
 import connectDB from './db.js'; 
-// import bcrypt from "bcrypt";
-// import session from "express-session";
-// import passport from "passport";
-// import { Strategy as LocalStrategy } from "passport-local";
-// import cors from "cors";
-// import cookieParser from "cookie-parser";
+import bcrypt from "bcrypt";
+import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import householdRouter from "./householdData.js";
 import { contactUsRouter } from "./contactus.js";  // Named import
 
-// import authRouter from "./Authentication.js";
+import authRouter from "./Authentication.js";
 import businessRouter from "./businessData.js";
 import adminRouter from "./adminData.js";
-// import memorystore from 'memorystore';
-// import path from "path";
-// import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import memorystore from 'memorystore';
+import path from "path";
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
-// const MemoryStore = memorystore(session);
+const MemoryStore = memorystore(session);
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -34,23 +34,23 @@ const port = process.env.PORT || 3001;
 // app.use(cookieParser()); // Add cookie-parser middleware
 
 // // Middleware setup
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: true,
-//     cookie: { secure: false, maxAge: 86400000 },
-//     store: new MemoryStore({
-//       checkPeriod: 86400000 // prune expired entries every 24h
-//     }),
-//   })
-// );
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 86400000 },
+    store: new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    }),
+  })
+);
 
-// app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 // MongoDB connection
@@ -168,7 +168,7 @@ connectDB();
 app.use(express.json());
 app.use("/api/household", householdRouter);
 app.use("/api/contact", contactUsRouter);
-// app.use("/api/auth", authRouter);
+app.use("/api/auth", authRouter);
 app.use("/api/business", businessRouter);
 app.use("/api/admin", adminRouter);
 

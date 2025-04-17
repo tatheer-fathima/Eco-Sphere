@@ -177,10 +177,10 @@
 //   }
 // });
 
-// // Check login status route
-// router.get('/login/status', (req, res) => {
-//   return req.user ? res.send(req.user) : res.sendStatus(401);
-// });
+// Check login status route
+router.get('/login/status', (req, res) => {
+  return req.user ? res.send(req.user) : res.sendStatus(401);
+});
 
 // // Get user type route
 // router.get('/user-type', (req, res) => {

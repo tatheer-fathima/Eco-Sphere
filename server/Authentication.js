@@ -206,13 +206,19 @@ import { generateSixDigitOTP, sendOTP } from './SendOTP.js';
 const router = express.Router();
 const saltRounds = 10;
 
-// Local Strategy setup
+// -------------------- Passport Local Strategy --------------------
 passport.use(new LocalStrategy(
   { usernameField: 'email', passwordField: 'password' },
   async (email, password, done) => {
     try {
       const user = await User.findOne({ email });
-      if (!user) return done(null, false, { message: 'Incorrect email.' });
+      if (!user || !user.password) {
+        return done(null, false, { message: 'Incorrect email or password.' });
+      }
+
+      if (typeof password !== 'string' || typeof user.password !== 'string') {
+        return done(null, false, { message: 'Invalid credentials.' });
+      }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
@@ -224,7 +230,7 @@ passport.use(new LocalStrategy(
   }
 ));
 
-// Serialize / Deserialize
+// -------------------- Passport Session Handling --------------------
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
   try {
@@ -235,13 +241,17 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Register
+// -------------------- Register --------------------
 router.post('/register', async (req, res) => {
   const { name, email, password, type } = req.body;
 
+  if (!password || password.trim() === '') {
+    return res.status(400).json({ message: 'Password is required' });
+  }
+
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).send('User already exists');
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -254,60 +264,73 @@ router.post('/register', async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).send(newUser);
+    res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (err) {
-    res.status(500).send('Error registering user');
+    res.status(500).json({ message: 'Error registering user' });
   }
 });
 
-// Login
+// -------------------- Login --------------------
 router.post('/login', (req, res, next) => {
-  if (req.body.email === process.env.ADMIN_MAIL && req.body.password === process.env.ADMIN_PASS) {
+  const { email, password } = req.body;
+
+  // Admin login check
+  if (email === process.env.ADMIN_MAIL && password === process.env.ADMIN_PASS) {
     return res.status(200).json({ type: "admin" });
   }
 
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
-    if (!user) return res.status(401).send('Invalid credentials');
-    if (!user.isverified) return res.status(402).send("Not Verified");
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user.isverified) return res.status(402).json({ message: 'Account not verified' });
 
     req.logIn(user, (err) => {
       if (err) return next(err);
       req.session.userId = user._id;
-      return res.status(200).json({ type: "user" });
+      return res.status(200).json({ type: "user", message: "Login successful" });
     });
   })(req, res, next);
 });
 
-// Send OTP
+
+router.get('/login/status', (req, res) => {
+    return req.user ? res.send(req.user) : res.sendStatus(401);
+  });
+
+// -------------------- Send OTP --------------------
 router.post('/sendOTP', async (req, res) => {
   try {
     const { email, subject } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ success: false, message: "Email not found" });
+
     const otp = generateSixDigitOTP();
     await sendOTP(email, otp, subject);
 
-    const user = await User.findOneAndUpdate({ email }, { otp });
+    user.otp = otp;
+    await user.save();
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "Email not found" });
-    }
-
-    res.status(200).json({ success: true, message: "OTP Sent" });
+    res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to send OTP" });
   }
 });
+
+// -------------------- Verify OTP --------------------
 router.post('/verifyOTP', async (req, res) => {
   try {
     const { email, otp } = req.body;
-    const user = await User.findOne({ email });
 
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ success: false, message: "Email not found" });
 
     if (user.otp === otp) {
       user.isverified = true;
+      user.otp = null; // clear the OTP after verification
       await user.save();
-      return res.status(200).json({ success: true, message: "OTP Verified" });
+
+      return res.status(200).json({ success: true, message: "OTP verified successfully" });
     } else {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
@@ -315,6 +338,5 @@ router.post('/verifyOTP', async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to verify OTP" });
   }
 });
-
 
 export default router;

@@ -159,7 +159,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/contactUs" element={<ContactUs />} />
-          <Route path = "/login" element = {<LoginForm setLoggedIn={setLoggedIn} />}/>
+          {/* <Route path = "/login" element = {<LoginForm setLoggedIn={setLoggedIn} />}/> */}
           <Route
             path="/login"
             element={loggedIn ? <Navigate to="/calculator" /> : <Login setLoggedIn={setLoggedIn} />}

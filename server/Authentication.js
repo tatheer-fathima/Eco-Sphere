@@ -178,9 +178,7 @@
 // });
 
 // Check login status route
-router.get('/login/status', (req, res) => {
-  return req.user ? res.send(req.user) : res.sendStatus(401);
-});
+
 
 // // Get user type route
 // router.get('/user-type', (req, res) => {
@@ -292,10 +290,9 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
-
 router.get('/login/status', (req, res) => {
-    return req.user ? res.send(req.user) : res.sendStatus(401);
-  });
+  return req.user ? res.send(req.user) : res.sendStatus(401);
+});
 
 // -------------------- Send OTP --------------------
 router.post('/sendOTP', async (req, res) => {

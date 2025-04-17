@@ -1,39 +1,33 @@
 import express from "express";
 import cors from "cors";
 import env from "dotenv";
-import bodyParser from "body-parser";
-import mongoose from "mongoose";
-import Contact from "./models/contact.js";
-import { ReceviceContactData, sendContactEmail } from './SendContactEmail.js';
+import bodyParser from "body-parser";  
+import Contact from "./models/contact.js";  // Import the Contact model
+import { ReceviceContactData, sendContactEmail } from './SendContactEmail.js';  // Import email functions
+import './db.js'; // Assuming db.js is handling your MongoDB connection
 
 env.config();
 
-const app = express();
-const port = 3004;
+const contactUsRouter = express.Router();  // Create a new router
 
-app.use(cors());
-app.use(bodyParser.json());
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-// POST route for /contact
-app.post('/contact', async (req, res) => {
+// POST route for /submit-contact (updated route name)
+contactUsRouter.post('/submit-contact', async (req, res) => {
     try {
         const { name, email, message, subject1, subject2 } = req.body;
 
-        // Send emails
-        await ReceviceContactData(name, email, message, subject1);
-        await sendContactEmail(name, email, subject2);
+        if (!name || !email || !message) {
+            return res.status(400).send("Name, email, and message are required.");
+        }
 
-        // Save contact data to MongoDB
+        // Step 1: Save the contact data to MongoDB
         const newContact = new Contact({ name, email, message });
         await newContact.save();
 
+        // Step 2: Send emails after saving the contact
+        await ReceviceContactData(name, email, message, subject1);  // Send email to the admin
+        await sendContactEmail(name, email, subject2);  // Send a thank-you email to the user
+
+        // Response to the client
         res.status(201).send("Message sent successfully");
     } catch (error) {
         console.error("Error sending message:", error);
@@ -41,6 +35,4 @@ app.post('/contact', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Contact server running on port ${port}`);
-});
+export { contactUsRouter };  // Export the router

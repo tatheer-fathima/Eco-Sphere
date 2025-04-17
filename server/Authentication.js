@@ -297,5 +297,24 @@ router.post('/sendOTP', async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to send OTP" });
   }
 });
+router.post('/verifyOTP', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ success: false, message: "Email not found" });
+
+    if (user.otp === otp) {
+      user.isverified = true;
+      await user.save();
+      return res.status(200).json({ success: true, message: "OTP Verified" });
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to verify OTP" });
+  }
+});
+
 
 export default router;

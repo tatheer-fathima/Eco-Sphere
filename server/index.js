@@ -17,7 +17,7 @@ import adminRouter from "./adminData.js";
 import memorystore from 'memorystore';
 import path from "path";
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-
+import User from './models/user.js'; // MongoDB User mode
 const MemoryStore = memorystore(session);
 const app = express();
 const port = process.env.PORT || 3001;
@@ -31,7 +31,7 @@ const port = process.env.PORT || 3001;
 //   })
 // );
 
-// app.use(cookieParser()); // Add cookie-parser middleware
+app.use(cookieParser()); // Add cookie-parser middleware
 
 // // Middleware setup
 app.use(
@@ -58,50 +58,43 @@ connectDB();
 
 
 
-// passport.use(
-//   new LocalStrategy(
-//     {
-//       usernameField: "email", // Specify the field name for the username
-//       passwordField: "password", // Specify the field name for the password
-//     },
-//     async function (email, password, done) {
-//       try {
-//         //console.log(req.body);
-//         console.log("Email:", email); // Log the email
-//         console.log("Password:", password); // Log the password
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email", // Email as the username
+      passwordField: "password",
+    },
+    async (email, password, done) => {
+      try {
+        console.log("Email:", email);
+        console.log("Password:", password);
 
-//         const result = await db.query("SELECT * FROM users WHERE email = $1", [
-//           email,
-//         ]);
+        const user = await User.findOne({ email });
 
-//         console.log("Query Result:", result.rows); // Log the query result
+        console.log("Query Result:", user);
 
-//         if (result.rows.length > 0) {
-//           const user = result.rows[0];
-//           const storedHashedPassword = user.password;
+        if (!user) {
+          console.log("Authentication failed: User not found");
+          return done(null, false, { message: 'User not found' });
+        }
 
-//           // Use await with bcrypt.compare
-//           const valid = await bcrypt.compare(password, storedHashedPassword);
+        const isMatch = await bcrypt.compare(password, user.password);
 
-//           if (valid) {
-//             console.log("Authentication successful:", user);
-//             return done(null, user);
-//           } else {
-//             console.log("Authentication failed: Invalid password");
-//             return done(null, false);
-//           }
-//         } else {
-//           console.log("Authentication failed: User not found");
-//           return done(null, false);
-//         }
-//       } catch (err) {
-//         console.error("Error during authentication:", err);
-//         return done(err);
-//       }
-//     }
-//   )
-// );
+        if (isMatch) {
+          console.log("Authentication successful:", user);
+          return done(null, user);
+        } else {
+          console.log("Authentication failed: Invalid password");
+          return done(null, false, { message: 'Incorrect password' });
+        }
 
+      } catch (err) {
+        console.error("Error during authentication:", err);
+        return done(err);
+      }
+    }
+  )
+);
 // async function findOrCreateUser(googleId, profile) {
 //   try {
  

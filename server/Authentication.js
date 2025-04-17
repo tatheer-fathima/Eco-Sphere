@@ -173,7 +173,7 @@ router.post('/resetPassword', async (req, res) => {
 
     res.status(201).send(user);
   } catch (err) {
-    res.status(500).send('Error Resetting Password');
+    res.status(500).send(`Error Resetting Password: ${err.message}`);
   }
 });
 

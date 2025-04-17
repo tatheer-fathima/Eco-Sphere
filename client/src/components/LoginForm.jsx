@@ -33,6 +33,7 @@ function LoginForm({ setLoggedIn }) {
       else if (response) {
         toast.success("Login successful!");
         setLoggedIn(true);
+        navigate("/calculator");
       }
     } catch (error) {
       if (error.response.status == 402) {
@@ -48,7 +49,7 @@ function LoginForm({ setLoggedIn }) {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'https://prithwe.onrender.com/auth/google';
+    window.location.href = 'http://localhost:3001/auth/google';
   };
 
   return (

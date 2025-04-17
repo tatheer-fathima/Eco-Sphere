@@ -26,46 +26,48 @@ const handleMenuClick = () => {
     setShowMenu(false);
 };
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const response = await axios.get(
-          "/api/auth/login/status", //http://localhost:3001/api/auth/login/status
-          { withCredentials: true }
-        );
-        if (response.status === 200) {
-          setLogIn(true);
-        }
-      } catch (error) {
-        setLogIn(false);
-        console.error("Error checking login status:", error);
-      }
-    };
-
-    checkLoginStatus();
-});
-
-
-  const handleLogout = async () => {
+useEffect(() => {
+  const checkLoginStatus = async () => {
     try {
-      const response = await axios.post(
-        "/api/auth/logout",
-        {},
+      const response = await axios.get(
+        "/api/auth/login/status",
         { withCredentials: true }
       );
-      if (response.status === 200) {
-        console.log("HERE")
+      // Check both status and response data
+      if (response.status === 200 && response.data.loggedIn) {
+        setLogIn(true);
+        setLoggedIn(true);
+      } else {
         setLogIn(false);
         setLoggedIn(false);
-        //checkLoginStatus();
-        // toast.success("Logout successful!");
-        navigate("/logout");
       }
     } catch (error) {
-      console.error("Error logging out:", error);
-      toast.error("Error logging out");
+      setLogIn(false);
+      setLoggedIn(false);
+      console.error("Error checking login status:", error);
     }
   };
+
+  checkLoginStatus();
+}, []); // Empty dependency array to run only once on mount
+
+const handleLogout = async () => {
+  try {
+    const response = await axios.post(
+      "/api/auth/logout",
+      {},
+      { withCredentials: true }
+    );
+    if (response.status === 200) {
+      setLogIn(false);
+      setLoggedIn(false);
+      navigate("/logout");
+    }
+  } catch (error) {
+    console.error("Error logging out:", error);
+    toast.error("Error logging out");
+  }
+};
   
     useEffect(() => {
       const savedTheme = localStorage.getItem('theme') || 'light';

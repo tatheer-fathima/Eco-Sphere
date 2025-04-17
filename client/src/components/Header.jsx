@@ -152,12 +152,12 @@ const handleLogout = async () => {
             </li>
             <li>
               <Link
-                to="/aboutUs"
+                to="/contactUs"
                 className={`block py-2 px-3 rounded md:hover:bg-transparent md:p-0 ${
                   theme === "dark" ? "text-white hover:text-white" : "text-white md:hover:text-white hover:bg-gray-700"
                 }`}
               >
-                About
+                  Contact
               </Link>
             </li>
 
@@ -207,12 +207,12 @@ const handleLogout = async () => {
             </li>
             <li>
               <Link
-                to="/contactUs"
+                to="/aboutUs"
                 className={`block py-2 px-3 rounded md:hover:bg-transparent md:p-0 ${
                   theme === "dark" ? "text-white hover:text-white" : "text-white md:hover:text-white hover:bg-gray-700"
                 }`}
               >
-                Contact
+                About
               </Link>
             </li>
 

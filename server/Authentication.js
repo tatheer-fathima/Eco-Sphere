@@ -180,10 +180,7 @@
 // Check login status route
 
 
-// // Get user type route
-// router.get('/user-type', (req, res) => {
-//   return req.user ? res.send(req.user) : res.sendStatus(401);
-// });
+
 
 // // Logout route
 // router.post('/logout', (req, res) => {
@@ -291,6 +288,11 @@ router.post('/login', (req, res, next) => {
 });
 
 router.get('/login/status', (req, res) => {
+  return req.user ? res.send(req.user) : res.sendStatus(401);
+});
+
+// Get user type route
+router.get('/user-type', (req, res) => {
   return req.user ? res.send(req.user) : res.sendStatus(401);
 });
 

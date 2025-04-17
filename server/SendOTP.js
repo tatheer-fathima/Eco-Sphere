@@ -26,6 +26,9 @@ let transporter = nodemailer.createTransport({
     user: process.env.MAIL,
     pass: process.env.APP_PASSWORD,
   },
+  tls: {
+    rejectUnauthorized: false, // Accept self-signed certificates
+  },
 });
 
 export function generateSixDigitOTP() {

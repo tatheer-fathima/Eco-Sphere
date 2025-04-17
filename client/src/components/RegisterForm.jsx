@@ -23,7 +23,7 @@ function RegisterForm() {
     try {
       if (!validateForm()) return;
 
-      const response = await axios.post("/api/auth/register", {
+      const response = await axios.post("http://localhost:3001/api/auth/register", {
         name,
         email,
         password,

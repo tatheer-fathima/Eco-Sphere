@@ -30,7 +30,7 @@ const VerifyEmail = () => {
   const handleSendOtp = async () => {
     const subject = "Email Verification OTP";
     try {
-      const response = await axios.post('/api/auth/sendOTP', { email, subject });
+      const response = await axios.post('http://localhost:3001/api/auth/sendOTP', { email, subject });
       if (response.data.success) {
         setOtpSent(true);
         setTimer(300); // Setting timer to 5 minutes
@@ -48,7 +48,7 @@ const VerifyEmail = () => {
 
   const handleVerifyOtp = async () => {
     try {
-      const response = await axios.post('/api/auth/verifyOTP', { email, otp });
+      const response = await axios.post('http://localhost:3001/api/auth/verifyOTP', { email, otp });
       if (response.data.success) {
         setMessage('Email verified successfully');
         setTimeout(() => {

@@ -145,7 +145,7 @@ function HouseholdForm() {
 
     // Make API call to save data
     try {
-      const response = await axios.post("api/household/saveData", {
+      const response = await axios.post("http://localhost:3001api/household/saveData", {
         commonFormData: formData,
         familyFormData: familyData,
         userId: await fetchUserId(),
@@ -162,7 +162,7 @@ function HouseholdForm() {
 
   const fetchUserId = async () => {
     try {
-      const response = await axios.get("/api/auth/login/status", {
+      const response = await axios.get("http://localhost:3001/api/auth/login/status", {
         withCredentials: true,
       });
       console.log("trying to fetch id from household form");

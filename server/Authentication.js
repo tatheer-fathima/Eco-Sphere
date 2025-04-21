@@ -287,10 +287,20 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
-router.get('/login/status', (req, res) => {
-  return req.user ? res.send(req.user) : res.sendStatus(401);
-});
+// router.get('/login/status', (req, res) => {
+//   return req.user ? res.send(req.user) : res.sendStatus(401);
+// });
 
+// Update this endpoint
+router.get('/login/status', (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.status(200).json({ 
+      loggedIn: true,
+      user: req.user 
+    });
+  }
+  return res.status(401).json({ loggedIn: false });
+});
 // Get user type route
 router.get('/user-type', (req, res) => {
   return req.user ? res.send(req.user) : res.sendStatus(401);

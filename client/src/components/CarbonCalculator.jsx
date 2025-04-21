@@ -1,212 +1,172 @@
-// Function to calculate total carbon footprint
-export const calculateTotalCarbonFootprint = (formData, familyData) => {
-  const emissionFactors = {
-    electricityUsage: 0.82,
-    waterUsage: 0.36,
-    wasteGeneration: 0.5,
-    gasCylinder: 2.98,
-    privateVehicle: 2.3,
-    publicVehicle: 0.015,
-    airTravel: 0.24,
-    vegMeal: 2.5,
-    nonVegMeal: 7,
-  };
+// Emission factors (kgCO2 per unit)
+const EMISSION_FACTORS = {
+  // Household factors
+  electricityUsage: 0.82,    // kgCO2 per kWh
+  waterUsage: 0.36,          // kgCO2 per liter
+  wasteGeneration: 0.5,      // kgCO2 per kg
+  gasCylinder: 2.98,         // kgCO2 per liter
+  // Transportation factors
+  privateVehicle: 2.3,       // kgCO2 per km
+  publicVehicle: 0.015,      // kgCO2 per km
+  airTravel: 0.24,           // kgCO2 per km
+  // Food factors
+  vegMeal: 2.5,              // kgCO2 per meal
+  nonVegMeal: 7,             // kgCO2 per meal
+  // Business factors
+  Electricity_Usage: 0.82,
+  Water_Usage: 0.36,
+  Paper_Consumption: 0.5,
+  Waste_Generation: 0.5,
+  Fuel_Consumption: 2.98,
+  Business_Travel: 0.24
+};
 
-  let commonCarbonFootprint = Object.keys(formData).reduce((total, key) => {
-    return total + parseFloat(formData[key]) * emissionFactors[key];
+// Conversion factors for business calculations
+const BUSINESS_CONVERSIONS = {
+  Water_Usage: 3.78541,      // gallons to liters
+  Waste_Generation: 1000,    // tonnes to kg
+  Fuel_Consumption: 3.78541  // gallons to liters
+};
+
+// Helper function to safely parse values
+const safeParse = (value) => Math.max(0, parseFloat(value) || 0);
+
+// Main calculation functions
+export const calculateTotalCarbonFootprint = (formData, familyData) => {
+  // Calculate household footprint
+  const householdFootprint = Object.keys(formData).reduce((total, key) => {
+    return total + safeParse(formData[key]) * (EMISSION_FACTORS[key] || 0);
   }, 0);
 
-  const familyCarbonFootprints = familyData.map((member) => {
-    const transportationFootprint =
-      parseFloat(member.transportation.privateVehicle) *
-        emissionFactors.privateVehicle +
-      parseFloat(member.transportation.publicVehicle) *
-        emissionFactors.publicVehicle +
-      parseFloat(member.transportation.airTravel) * emissionFactors.airTravel;
-    const foodFootprint =
-      parseFloat(member.food.vegMeals) * emissionFactors.vegMeal +
-      parseFloat(member.food.nonVegMeals) * emissionFactors.nonVegMeal;
-    return transportationFootprint + foodFootprint;
-  });
+  // Calculate family members' footprints
+  const familyFootprint = familyData.reduce((total, member) => {
+    const transport = 
+      safeParse(member.transportation.privateVehicle) * EMISSION_FACTORS.privateVehicle +
+      safeParse(member.transportation.publicVehicle) * EMISSION_FACTORS.publicVehicle +
+      safeParse(member.transportation.airTravel) * EMISSION_FACTORS.airTravel;
+      
+    const food = 
+      safeParse(member.food.vegMeals) * EMISSION_FACTORS.vegMeal +
+      safeParse(member.food.nonVegMeals) * EMISSION_FACTORS.nonVegMeal;
 
-  const totalCarbonFootprint =
-    commonCarbonFootprint +
-    familyCarbonFootprints.reduce((total, footprint) => total + footprint, 0);
+    return total + transport + food;
+  }, 0);
 
-  return totalCarbonFootprint;
+  return householdFootprint + familyFootprint;
 };
 
-// Function to calculate contributions
-export const calculateContributions = (
-  formData,
-  familyData,
-  totalCarbonFootprint
-) => {
-  const emissionFactors = {
-    electricityUsage: 0.82,
-    waterUsage: 0.36,
-    wasteGeneration: 0.5,
-    gasCylinder: 2.98,
-    privateVehicle: 2.3,
-    publicVehicle: 0.015,
-    airTravel: 0.24,
-    vegMeal: 2.5,
-    nonVegMeal: 7,
-  };
+export const calculateContributions = (formData, familyData, total) => {
+  if (total <= 0) return [];
 
-  const electricityContribution =
-    ((parseFloat(formData.electricityUsage) *
-      emissionFactors.electricityUsage) /
-      totalCarbonFootprint) *
-    100;
-  const waterContribution =
-    ((parseFloat(formData.waterUsage) * emissionFactors.waterUsage) /
-      totalCarbonFootprint) *
-    100;
-  const wasteContribution =
-    ((parseFloat(formData.wasteGeneration) * emissionFactors.wasteGeneration) /
-      totalCarbonFootprint) *
-    100;
-  const gasContribution =
-    ((parseFloat(formData.gasCylinder) * emissionFactors.gasCylinder) /
-      totalCarbonFootprint) *
-    100;
+  const contributions = [];
 
-  let vegFootprint = 0;
-  let nonVegFootprint = 0;
-  let privateFootprint = 0;
-  let publicFootprint = 0;
-  let airFootprint = 0;
+  // Add household contributions
+  if (formData.electricityUsage) {
+    contributions.push({
+      category: "Electricity",
+      value: safeParse(formData.electricityUsage) * EMISSION_FACTORS.electricityUsage
+    });
+  }
 
-  familyData.forEach((member) => {
-    vegFootprint +=
-      ((parseFloat(member.food.vegMeals) * emissionFactors.vegMeal) /
-        totalCarbonFootprint) *
-      100;
-    nonVegFootprint +=
-      ((parseFloat(member.food.nonVegMeals) * emissionFactors.nonVegMeal) /
-        totalCarbonFootprint) *
-      100;
-    privateFootprint +=
-      ((parseFloat(member.transportation.privateVehicle) *
-        emissionFactors.privateVehicle) /
-        totalCarbonFootprint) *
-      100;
-    publicFootprint +=
-      ((parseFloat(member.transportation.publicVehicle) *
-        emissionFactors.publicVehicle) /
-        totalCarbonFootprint) *
-      100;
-    airFootprint +=
-      ((parseFloat(member.transportation.airTravel) *
-        emissionFactors.airTravel) /
-        totalCarbonFootprint) *
-      100;
-  });
+  if (formData.waterUsage) {
+    contributions.push({
+      category: "Water",
+      value: safeParse(formData.waterUsage) * EMISSION_FACTORS.waterUsage
+    });
+  }
 
-  const allContributions = [
-    { name: "Electricity", y: electricityContribution },
-    { name: "Water", y: waterContribution },
-    { name: "Waste Generation", y: wasteContribution },
-    { name: "Gas Cylinder", y: gasContribution },
-    { name: "Veg Food", y: vegFootprint },
-    { name: "Non-Veg Food", y: nonVegFootprint },
-    { name: "Public Transportation", y: publicFootprint },
-    { name: "Private Transportation", y: privateFootprint },
-    { name: "Air Transportation", y: airFootprint },
-  ];
+  if (formData.wasteGeneration) {
+    contributions.push({
+      category: "Waste",
+      value: safeParse(formData.wasteGeneration) * EMISSION_FACTORS.wasteGeneration
+    });
+  }
 
-  return allContributions;
+  if (formData.gasCylinder) {
+    contributions.push({
+      category: "Gas",
+      value: safeParse(formData.gasCylinder) * EMISSION_FACTORS.gasCylinder
+    });
+  }
+
+  // Add family member contributions (aggregated)
+  const familyContributions = familyData.reduce((acc, member) => {
+    acc.veg += safeParse(member.food.vegMeals) * EMISSION_FACTORS.vegMeal;
+    acc.nonVeg += safeParse(member.food.nonVegMeals) * EMISSION_FACTORS.nonVegMeal;
+    acc.private += safeParse(member.transportation.privateVehicle) * EMISSION_FACTORS.privateVehicle;
+    acc.public += safeParse(member.transportation.publicVehicle) * EMISSION_FACTORS.publicVehicle;
+    acc.air += safeParse(member.transportation.airTravel) * EMISSION_FACTORS.airTravel;
+    return acc;
+  }, { veg: 0, nonVeg: 0, private: 0, public: 0, air: 0 });
+
+  if (familyContributions.veg > 0) {
+    contributions.push({
+      category: "Vegetarian Meals",
+      value: familyContributions.veg
+    });
+  }
+
+  if (familyContributions.nonVeg > 0) {
+    contributions.push({
+      category: "Non-Vegetarian Meals",
+      value: familyContributions.nonVeg
+    });
+  }
+
+  if (familyContributions.private > 0) {
+    contributions.push({
+      category: "Private Transport",
+      value: familyContributions.private
+    });
+  }
+
+  if (familyContributions.public > 0) {
+    contributions.push({
+      category: "Public Transport",
+      value: familyContributions.public
+    });
+  }
+
+  if (familyContributions.air > 0) {
+    contributions.push({
+      category: "Air Travel",
+      value: familyContributions.air
+    });
+  }
+
+  // Calculate percentages and filter near-zero values
+  return contributions
+    .filter(item => item.value > 0.1) // Ignore trivial contributions
+    .map(item => ({
+      ...item,
+      percentage: (item.value / total) * 100
+    }));
 };
 
- export const calculateBusinessCarbonFootprint = (formData) => {
-   // Define emission factors for each input
-   const emissionFactors = {
-     Electricity_Usage: 0.82,
-     Water_Usage: 0.36,
-     Paper_Consumption: 0.5,
-     Waste_Generation: 0.5,
-     Fuel_Consumption: 2.98,
-     Business_Travel: 0.24,
-   };
+// Business calculations
+export const calculateBusinessCarbonFootprint = (formData) => {
+  return Object.keys(formData).reduce((total, key) => {
+    const value = safeParse(formData[key]);
+    const conversion = BUSINESS_CONVERSIONS[key] || 1;
+    return total + value * conversion * (EMISSION_FACTORS[key] || 0);
+  }, 0);
+};
 
-   const conversionFactors = {
-     Water_Usage: 3.78541,
-     Waste_Generation: 1000, // 1 tonne = 1000 kg
-     Fuel_Consumption: 3.78541, // 1 gallon = 3.78541 liters
-   };
+export const calculateBusinessContributions = (formData, total) => {
+  if (total <= 0) return [];
 
-   // Calculate carbon footprint
-   /*let totalCarbonFootprint = Object.keys(formData).reduce((total, key) => {
-      return total + (parseFloat(formData[key]) * emissionFactors[key]);
-    }, 0);*/
-   // Calculate carbon footprint
-   let totalCarbonFootprint = Object.keys(formData).reduce((total, key) => {
-     // Apply conversion factor if input is in tonnes or gallons
-     const convertedValue = conversionFactors[key]
-       ? parseFloat(formData[key]) * conversionFactors[key]
-       : parseFloat(formData[key]);
-     return total + convertedValue * emissionFactors[key];
-   }, 0);
-   return totalCarbonFootprint;
- };
-
- export const calculateBusinessContributions = (formData, totalCarbonFootprint) => {
-   // Define emission factors for each input
-   const emissionFactors = {
-     Electricity_Usage: 0.82,
-     Water_Usage: 0.36,
-     Paper_Consumption: 0.5,
-     Waste_Generation: 0.5,
-     Fuel_Consumption: 2.98,
-     Business_Travel: 0.24,
-   };
-
-   const conversionFactors = {
-     Water_Usage: 3.78541,
-     Waste_Generation: 1000, // 1 tonne = 1000 kg
-     Fuel_Consumption: 3.78541, // 1 gallon = 3.78541 liters
-   };
-
-   // Calculate the total emissions for each parameter
-   const totalEmissions = {
-     Electricity_Usage:
-       parseFloat(formData.Electricity_Usage) *
-       emissionFactors.Electricity_Usage,
-     Water_Usage:
-       parseFloat(formData.Water_Usage) * emissionFactors.Water_Usage,
-     Paper_Consumption:
-       parseFloat(formData.Paper_Consumption) *
-       emissionFactors.Paper_Consumption,
-     Waste_Generation:
-       parseFloat(formData.Waste_Generation) *
-       emissionFactors.Waste_Generation *
-       conversionFactors.Waste_Generation,
-     Fuel_Consumption:
-       parseFloat(formData.Fuel_Consumption) *
-       emissionFactors.Fuel_Consumption *
-       conversionFactors.Fuel_Consumption,
-     Business_Travel:
-       parseFloat(formData.Business_Travel) * emissionFactors.Business_Travel,
-   };
-   // Calculate the total emissions
-   const totalEmissionsSum = Object.values(totalEmissions).reduce(
-     (sum, value) => sum + value,
-     0
-   );
-
-   // Calculate contributions based on total emissions
-   const allContributions = Object.keys(totalEmissions).map((key) => ({
-     name: key.replace(/_/g, " "), // Replace underscores with spaces for display
-     y: (totalEmissions[key] / totalEmissionsSum) * 100,
-   }));
-
-   return allContributions;
-   // Calculate contributions
-   /*const allContributions = Object.keys(formData).map(key => ({
-      label: key,
-      value: (parseFloat(formData[key]) * emissionFactors[key]) / totalCarbonFootprint * 100
-    }));*/
-
-   /*return allContributions;*/
- };
+  return Object.keys(formData)
+    .map(key => {
+      const value = safeParse(formData[key]);
+      const conversion = BUSINESS_CONVERSIONS[key] || 1;
+      return {
+        category: key.replace(/_/g, " "),
+        value: value * conversion * (EMISSION_FACTORS[key] || 0)
+      };
+    })
+    .filter(item => item.value > 0)
+    .map(item => ({
+      ...item,
+      percentage: (item.value / total) * 100
+    }));
+};

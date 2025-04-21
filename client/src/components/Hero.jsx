@@ -19,7 +19,7 @@ function Hero() {
             Wanna reduce your <span className="text-green-500">carbon footprints</span>? <span className="">Calculate</span> it first 
           </div>
           <div className="para font-Rubik text-sm md:text-base text-slate-600">
-            Our platform, PrithWe, empowers households and businesses to
+            Our platform, Eco Sphere, empowers households and businesses to
             calculate their environmental impact accurately with easy-to-use
             tools and insightful data. 
           </div>

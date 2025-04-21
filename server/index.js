@@ -215,7 +215,7 @@ import cookieParser from "cookie-parser";
 import memorystore from 'memorystore';
 import householdRouter from "./householdData.js";
 import { contactUsRouter } from "./contactus.js";
-import authRouter from "./Authentication.js";
+// import authRouter from "./Authentication.js";
 import businessRouter from "./businessData.js";
 import adminRouter from "./adminData.js";
 import User from './models/User.js';
@@ -300,7 +300,7 @@ app.get('/auth/google/callback',
 // Routes
 app.use("/api/household", householdRouter);
 app.use("/api/contact", contactUsRouter);
-app.use("/api/auth", authRouter);
+// app.use("/api/auth", authRouter); //no need of this route as we are using firebase authentication
 app.use("/api/business", businessRouter);
 app.use("/api/admin", adminRouter);
 

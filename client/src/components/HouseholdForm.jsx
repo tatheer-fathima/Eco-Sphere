@@ -1,13 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
-import PieChart from "./PieChart";
-import DoughnutChart from "./DoughnutChart";
 import HouseholdResult from "./HouseholdResult";
 import { toast } from 'react-toastify';
-import {
-  calculateTotalCarbonFootprint,
-  calculateContributions,
-} from "./CarbonCalculator";
+import { calculateTotalCarbonFootprint, calculateContributions } from "./CarbonCalculator";
 
 function HouseholdForm() {
   const [formData, setFormData] = useState({
@@ -17,16 +11,12 @@ function HouseholdForm() {
     gasCylinder: "",
   });
 
-
   const [numFamilyMembers, setNumFamilyMembers] = useState(0);
   const [familyData, setFamilyData] = useState([]);
   const [contributions, setContributions] = useState([]);
   const [totalCarbonFootprint, setTotalCarbonFootprint] = useState(null);
-  const [showChart, setShowChart] = useState(false); // State to toggle chart visibility
-  const [Recommendation,setRecommendation]=useState();
-
-  //const [error, setError] = useState(null); // State to handle errors
-  //const [showResults, setShowResults] = useState(false); // State to control showing Results
+  const [showChart, setShowChart] = useState(false);
+  const [recommendation, setRecommendation] = useState(null);
 
   const handleInputChange = (index, key, value) => {
     const updatedFamilyData = [...familyData];
@@ -44,134 +34,184 @@ function HouseholdForm() {
 
   const handleFamilySubmit = (e) => {
     e.preventDefault();
-    if (parseInt(numFamilyMembers) < 1) {
+    const numMembers = parseInt(numFamilyMembers);
+    
+    if (numMembers < 1 || isNaN(numMembers)) {
       toast.error("Please enter a valid number of family members.");
       return;
     }
-    const initialFamilyData = Array.from(
-      { length: parseInt(numFamilyMembers) },
-      () => ({
-        name: "",
-        transportation: {
-          privateVehicle: "",
-          publicVehicle: "",
-          airTravel: "",
-        },
-        food: { vegMeals: "", nonVegMeals: "" },
-      })
-    );
+    
+    const initialFamilyData = Array(numMembers).fill().map(() => ({
+      name: "",
+      transportation: {
+        privateVehicle: "",
+        publicVehicle: "",
+        airTravel: "",
+      },
+      food: { vegMeals: "", nonVegMeals: "" },
+    }));
+    
     setFamilyData(initialFamilyData);
   };
+  // const handleCalculateCF = (e) => {
+  //   e.preventDefault();
 
+  //   if (familyData.length === 0) {
+  //     toast.error("Click on Next and Enter family member information before calculating.");
+  //     return;
+  //   }
+
+  //   // Validate form data
+  //   for (const key in formData) {
+  //     const value = parseFloat(formData[key]);
+  //     if (isNaN(value) || value < 0) {
+  //       toast.error(`Invalid input for ${key}`);
+  //       return;
+  //     }
+  //   }
+
+  //   // Validate family data
+  //   for (const member of familyData) {
+  //     for (const category in member) {
+  //       if (category === "name") continue;
+  //       for (const key in member[category]) {
+  //         const value = parseFloat(member[category][key]);
+  //         if (isNaN(value) || value < 0) {
+  //           toast.error(`Invalid input for ${member.name || 'member'}'s ${category} - ${key}`);
+  //           return;
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   // Calculate results
+  //   const totalFootprint = calculateTotalCarbonFootprint(formData, familyData);
+  //   const calculatedContributions = calculateContributions(formData, familyData, totalFootprint);
+  //   const rec = getRecommendations(totalFootprint);
+
+  //   setTotalCarbonFootprint(totalFootprint);
+  //   setContributions(calculatedContributions);
+  //   setRecommendation(rec);
+  //   setShowChart(true);
+  // };
+
+  const getRecommendations = (footprint) => {
+    const recommendations = [
+      {
+        threshold: 1000,
+        message: "Excellent! Your carbon footprint is very low.",
+        suggestions: [
+          "Keep up the good work!",
+          "Consider renewable energy options to maintain your low impact."
+        ]
+      },
+      {
+        threshold: 3000,
+        message: "Good! Consider reducing your energy consumption.",
+        suggestions: [
+          "Switch to LED bulbs",
+          "Reduce meat consumption",
+          "Use public transportation more often"
+        ]
+      },
+      {
+        threshold: Infinity,
+        message: "High carbon footprint. Consider significant lifestyle changes.",
+        suggestions: [
+          "Audit your home energy use",
+          "Consider electric vehicles",
+          "Reduce air travel",
+          "Adopt plant-based diet"
+        ]
+      }
+    ];
+  
+    const { message, suggestions } = recommendations.find(
+      r => footprint < r.threshold
+    );
+  
+    return {
+      summary: message,
+      suggestions,
+      footprintValue: footprint
+    };
+  };
+  
+  const validateInput = (value, fieldName) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return { valid: false, error: `Please enter a valid number for ${fieldName}` };
+    }
+    if (numValue < 0) {
+      return { valid: false, error: `${fieldName} cannot be negative` };
+    }
+    return { valid: true, value: numValue };
+  };
+  
   const handleCalculateCF = async (e) => {
     e.preventDefault();
-
-    if (familyData.length === 0) {
-      toast.error(
-        "Click on Next and Enter family member information before calculating."
-      );
-      return;
-    }
-
-    // Validation for common form data
-    for (const key in formData) {
-      const value = parseFloat(formData[key]);
-      if (isNaN(value) || value < 0) {
-        toast.error(`Invalid input for ${key}`);
+  
+    try {
+      // Validate family data exists
+      if (familyData.length === 0) {
+        toast.error("Please enter family member information before calculating.");
         return;
       }
-    }
-
-    // Validation for family member data
-    for (const member of familyData) {
-      for (const category in member) {
-        if (category === "name" && member[category].trim() === "") continue; // Skip validation for name if it's empty
-        if (category === "name") continue; // Skip validation for the name field
-        for (const key in member[category]) {
-          const value = parseFloat(member[category][key]);
-          if (isNaN(value) || value < 0) {
-            toast.error(
-              `Invalid input for ${member.name}'s ${category} - ${key}`
-            );
-            //setError(`Invalid input for ${member.name}'s ${category} - ${key}`);
-            return;
+  
+      // Validate form inputs
+      const validatedFormData = {};
+      for (const key in formData) {
+        const validation = validateInput(formData[key], key);
+        if (!validation.valid) {
+          toast.error(validation.error);
+          return;
+        }
+        validatedFormData[key] = validation.value;
+      }
+  
+      // Validate family member data
+      const validatedFamilyData = familyData.map((member, index) => {
+        const validatedMember = { name: member.name || `Member ${index + 1}` };
+        
+        for (const category in member) {
+          if (category === "name") continue;
+          
+          validatedMember[category] = {};
+          for (const key in member[category]) {
+            const fieldName = `${validatedMember.name}'s ${category} ${key}`;
+            const validation = validateInput(member[category][key], fieldName);
+            if (!validation.valid) {
+              toast.error(validation.error);
+              return null;
+            }
+            validatedMember[category][key] = validation.value;
           }
         }
-      }
-    }
-    for (const member of familyData) {
-      for (const category in member) {
-        if (category === "name" && member[category].trim() === "") continue; // Skip validation for name if it's empty
-        if (category === "name") continue; // Skip validation for the name field
-        for (const key in member[category]) {
-          const value = parseFloat(member[category][key]);
-          if (isNaN(value) || value < 0) {
-            toast.error(
-              `Invalid input for ${member.name}'s ${category} - ${key}`
-            );
-            return;
-          }
-        }
-      }
-    }
-    /*for (const member of familyData) {
-      for (const category in member) {
-        if (category === 'name' && member[category].trim() === '') continue; // Skip validation for name if it's empty
-        if (category === 'name') continue; // Skip validation for the name field
-        for (const key in member[category]) {
-          const value = parseFloat(member[category][key]);
-          if (isNaN(value) || value < 0) {
-            toast.error(`Invalid input for ${member.name}'s ${category} - ${key}`);
-            return;
-          }
-        }
-      }
-    }*/
-
-    // Calculate the total carbon footprint
-    const totalCarbonFootprint = calculateTotalCarbonFootprint(
-      formData,
-      familyData
-    );
-    setTotalCarbonFootprint(totalCarbonFootprint);
-
-    // Calculate contributions
-    const calculatedContributions = calculateContributions(
-      formData,
-      familyData,
-      totalCarbonFootprint
-    );
-    setContributions(calculatedContributions);
-
-    // Make API call to save data
-    try {
-      const response = await axios.post("http://localhost:3001api/household/saveData", {
-        commonFormData: formData,
-        familyFormData: familyData,
-        userId: await fetchUserId(),
+        return validatedMember;
       });
-      toast.success("Calculated successfully");
-      const result = response.data;
-      setRecommendation(result)
+  
+      if (validatedFamilyData.includes(null)) return;
+  
+      // Calculate results
+      const totalFootprint = calculateTotalCarbonFootprint(validatedFormData, validatedFamilyData);
+      const calculatedContributions = calculateContributions(validatedFormData, validatedFamilyData, totalFootprint);
+      const recommendation = getRecommendations(totalFootprint);
+  
+      // Save results
+      setTotalCarbonFootprint(totalFootprint);
+      setContributions(calculatedContributions);
+      setRecommendation(recommendation);
       setShowChart(true);
+  
+      // Success feedback
+      toast.success("Calculation completed successfully!");
+      
     } catch (error) {
-      console.error("Error saving data:", error);
-      toast.info("Calculated...Login to view more");
+      console.error("Calculation error:", error);
+      toast.error("An error occurred during calculation. Please try again.");
     }
   };
 
-  const fetchUserId = async () => {
-    try {
-      const response = await axios.get("http://localhost:3001/api/auth/login/status", {
-        withCredentials: true,
-      });
-      console.log("trying to fetch id from household form");
-      return response.data.id;
-    } catch (error) {
-      console.error("Error fetching user ID:", error);
-      throw error;
-    }
-  };
 
   return (
     <div className="p-4  m-2 mt-10">
@@ -180,7 +220,7 @@ function HouseholdForm() {
         <HouseholdResult
           totalCarbonFootprint={totalCarbonFootprint}
           contributions={contributions}
-          Recommendation={Recommendation}
+          recommendation={recommendation}
         />
       )}
       {!showChart && (

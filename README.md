@@ -1,1 +1,1 @@
-# Eco-Sphere
+# Eco-Sphere - a carbon foot print tracer

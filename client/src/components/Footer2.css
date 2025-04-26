@@ -1,19 +1,4 @@
-/* .footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2px 7px;
-  }
-  
-  @media (min-width: 768px) {
-    .footer-container {
-      padding: 16px 32px;
-    }
-  }
-  
-  .footer-container .space-y-3 > * + * {
-    margin-top: 8px; /* reduces vertical spacing between logo and nav */
-  }
-   */
+
    .footer-container {
     max-width: 1200px;
     margin: 0 auto;

@@ -230,7 +230,7 @@ connectDB();
 // Middleware
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://eco-sphere-xgbh.vercel.app/",
   credentials: true,
 }));
 app.use(bodyParser.urlencoded({ extended: true }));
